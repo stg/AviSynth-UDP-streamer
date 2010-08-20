@@ -55,11 +55,16 @@ void dither( float *r, float *g, float *b, unsigned char *rr, unsigned char *gg,
 	*g *= 255;
 	*b *= 255;
 	*rr = ( ( unsigned char )floor( *r ) ) & 0xFC ;
-	if( ( ( *r - ( float )*rr ) / 4.0 ) > ( ( float )rand() / ( float )RAND_MAX ) ) *rr = ( *rr < 252 ? *rr + 4 : 255 );
+	if( ( ( *r - ( float )*rr ) / 4.0 ) > ( ( float )rand() / ( float )RAND_MAX ) ) *rr = ( *rr < 252 ? *rr + 4 : 252 );
 	*gg = ( ( unsigned char )floor( *g ) ) & 0xFC ;
-	if( ( ( *g - ( float )*gg ) / 4.0 ) > ( ( float )rand() / ( float )RAND_MAX ) ) *gg = ( *gg < 252 ? *gg + 4 : 255 );
+	if( ( ( *g - ( float )*gg ) / 4.0 ) > ( ( float )rand() / ( float )RAND_MAX ) ) *gg = ( *gg < 252 ? *gg + 4 : 252 );
 	*bb = ( ( unsigned char )floor( *b ) ) & 0xFC ;
-	if( ( ( *b - ( float )*bb ) / 4.0 ) > ( ( float )rand() / ( float )RAND_MAX ) ) *bb = ( *bb < 252 ? *bb + 4 : 255 );
+	if( ( ( *b - ( float )*bb ) / 4.0 ) > ( ( float )rand() / ( float )RAND_MAX ) ) *bb = ( *bb < 252 ? *bb + 4 : 252 );
+	
+	//"uncurve"
+	//*rr = ( unsigned char )floor( sqrt( ( float )*rr / 255.0 ) * 255.0 );
+	//*gg = ( unsigned char )floor( sqrt( ( float )*gg / 255.0 ) * 255.0 );
+	//*bb = ( unsigned char )floor( sqrt( ( float )*bb / 255.0 ) * 255.0 );
 }
 
 // Temporary test function, returns a modified frame
@@ -81,7 +86,7 @@ AVS_VideoFrame * AVSC_CC sender( AVS_FilterInfo * p, int n ) {
   row_size = avs_get_row_size( frame );
   height   = avs_get_height( frame );
   pitch    = avs_get_pitch( frame );
-  data     = avs_get_write_ptr( frame );
+  data     = avs_get_write_ptr( frame ) + pitch * ( height - 1 );
 
   for (y = 0; y != height; ++y) {
 	  for (x = 0; x < row_size; x += 3 ) {
@@ -90,16 +95,16 @@ AVS_VideoFrame * AVSC_CC sender( AVS_FilterInfo * p, int n ) {
     	b = ( ( float )data[ x + 2 ] ) / 255;
     	curve( &r, &g, &b );
     	dither( &r, &g, &b, &data[ x + 0 ], &data[ x + 1 ], &data[ x + 2 ] );
-    	*ppkt++ = data[ x + 0 ];
+    	*ppkt++ = data[ x + 2 ];
     	*ppkt++ = data[ x + 1 ];
-    	*ppkt++ = data[ x + 2 ];
-    	*ppkt++ = data[ x + 2 ];
+    	*ppkt++ = data[ x + 0 ];
+    	*ppkt++ = data[ x + 0 ];
     	if( ppkt == &pkt[ 1024 ] ) {
 				sendto( f->socket_handle, pkt, 1024, 0, ( SOCKADDR* )f->target_addr, sizeof( SOCKADDR_IN ) );   
 				ppkt = pkt;
     	}
     }  
-    data += pitch;
+    data -= pitch;
   }
   return frame;  
 }
