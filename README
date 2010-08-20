@@ -1,9 +1,14 @@
 This project will send video frames over UDP to the PET-GCM video stream receiver.
-It can be adapted for other similar applications.
+It relies on an AviSynth script to provide frames in the appropriate format - RGB24, 64x48 pixels.
+The project can easily be adapted for other similar applications.
+Compiles using MinGW+MSys (and probably others).
 
-Accompanying AVISynth script (tested with ffdshow):
+Accompanying AVISynth script (for use with ffdshow):
 
 LoadCplugin("somefolder\petsend.dll")
 BicubicResize(64,48)
 ConvertToRGB24()
 send_frame("ip-address:port")
+#Uncomment one of the following lines for the desired output
+#PointResize(640,480) # Resize results for better visibility on screen
+#FFDShow_Source() # Show original video on screen
