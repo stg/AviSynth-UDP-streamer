@@ -1,0 +1,9 @@
+This project will send video frames over UDP to the PET-GCM video stream receiver.
+It can be adapted for other similar applications.
+
+Accompanying AVISynth script (tested with ffdshow):
+
+LoadCplugin("somefolder\petsend.dll")
+BicubicResize(64,48)
+ConvertToRGB24()
+send_frame("ip-address:port")
